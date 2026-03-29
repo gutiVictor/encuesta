@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Dashboard de Análisis de Deserción Estudiantil - CUN
-VERSIÓN CON FILTROS AVANZADOS Y EXPORTACIÓN EXCEL
+VERSIÓN CON LOGO INSTITUCIONAL
 """
 
 import streamlit as st
@@ -13,7 +13,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 from pathlib import Path
 import time
-import io
+import base64
 from io import BytesIO
 
 # ============================================================
@@ -27,9 +27,31 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# CSS con estilos para el logo
 st.markdown("""
 <style>
-    .main-title { font-size: 2.2rem; font-weight: 800; color: #1e3a8a; text-align: center; }
+    .logo-container {
+        text-align: center;
+        padding: 1rem 0;
+        background: linear-gradient(135deg, #f0f9f4 0%, #e6f4ea 100%);
+        border-radius: 15px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .main-title { 
+        font-size: 2rem; 
+        font-weight: 800; 
+        color: #1e3a8a; 
+        text-align: center;
+        margin: 0.5rem 0;
+    }
+    .subtitle {
+        text-align: center;
+        color: #2e7d52;
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
     .metric-container {
         background: white; border-radius: 10px; padding: 1rem;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-left: 4px solid; margin: 0.5rem 0;
@@ -45,11 +67,58 @@ st.markdown("""
     .filter-active {
         background-color: #dbeafe; border: 1px solid #3b82f6;
     }
+    .sidebar-logo {
+        text-align: center;
+        padding: 10px;
+        background: white;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# PROCESAMIENTO DE DATOS (Mantenido igual - optimizado)
+# FUNCIÓN PARA CARGAR LOGO
+# ============================================================
+
+def render_header_with_logo():
+    """Renderiza el encabezado con logo de CUN"""
+    # Crear tres columnas para centrar el contenido
+    col_left, col_center, col_right = st.columns([1, 2, 1])
+    
+    with col_center:
+        # Mostrar logo
+        try:
+            #insertar logo
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                st.image("./cun-2.png", width=200, use_container_width=False)
+        except:
+            st.warning("Logo no encontrado")
+        
+        # Título y subtítulo
+        st.markdown('<div class="main-title">🎓 Sistema de Análisis de Deserción Estudiantil</div>', 
+                   unsafe_allow_html=True)
+        st.markdown('<div class="subtitle">Corporación Unificada Nacional de Educación Superior (CUN)</div>', 
+                   unsafe_allow_html=True)
+        st.markdown('<div style="text-align: center; color: #6b7280; font-size: 0.9rem; margin-bottom: 2rem;">'
+                   'Ingeniería de Sistemas - Trabajo de Grado <br>Lyda Alejandra Barbosa Amado Docente - Ingeniería de Sistemas</div>', 
+                   unsafe_allow_html=True)
+
+def render_sidebar_logo():
+    """Muestra versión pequeña del logo en sidebar"""
+    st.sidebar.markdown('<div class="sidebar-logo">', unsafe_allow_html=True)
+    try:
+        st.sidebar.image("/mnt/kimi/upload/cun-1.png", width=120, use_container_width=False)
+    except:
+        pass
+    st.sidebar.markdown('</div>', unsafe_allow_html=True)
+    st.sidebar.markdown("<h3 style='text-align: center; color: #2e7d52; margin-top: 0;'>CUN</h3>", 
+                       unsafe_allow_html=True)
+
+# ============================================================
+# PROCESAMIENTO DE DATOS (Mantenido igual)
 # ============================================================
 
 def limpiar_columnas(df):
@@ -73,7 +142,6 @@ def procesar_csv_optimizado(file, placeholder_status):
     
     df = limpiar_columnas(df_raw)
     
-    # Conversiones numéricas
     cols_numericas = ['semestre', 'promedio_acumulado', 'promedio_ultimo', 
                      'materias_perdidas', 'frecuencia_semanal', 'estrato', 
                      'horas_semanales', 'dependientes', 'satisfaccion_programa', 
@@ -83,7 +151,6 @@ def procesar_csv_optimizado(file, placeholder_status):
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors='coerce')
     
-    # Procesamiento vectorizado
     result = pd.DataFrame()
     result['id'] = df['id']
     result['programa'] = df['programa'].astype(str)
@@ -96,7 +163,6 @@ def procesar_csv_optimizado(file, placeholder_status):
     pct = pd.to_numeric(df['pct_creditos_aprobados'], errors='coerce')
     result['pct_creditos_aprobados'] = np.where(pct > 1, pct/100, pct)
     
-    # Binarias
     result['acceso_plataforma'] = (df.get('acceso_plataforma_mes', '')
                                    .astype(str).str.lower().str.strip()
                                    .isin(['si', 'sí', 'yes', '1'])).astype(int)
@@ -121,7 +187,6 @@ def procesar_csv_optimizado(file, placeholder_status):
         [1.0, 0.5], default=0.0
     )
     
-    # Índices
     dif_perc = df.get('dificultad_percibida', '').astype(str).str.lower()
     score_dificultad = np.select(
         [dif_perc.str.contains('much'), dif_perc.str.contains('algo'), dif_perc.str.contains('poc')],
@@ -135,7 +200,6 @@ def procesar_csv_optimizado(file, placeholder_status):
     result['indice_riesgo_academico'] = (prom_norm * 0.35 + mat_norm * 0.25 + 
                                          score_dificultad * 0.25 + cred_factor * 0.15).clip(0, 1)
     
-    # Engagement
     frec_norm = (result['frecuencia_semanal'] / 7).clip(0, 1)
     part = df.get('participacion_sincronica', '').astype(str).str.lower()
     score_part = np.select([part.str.contains('siempre'), part.str.contains('regular'), 
@@ -150,7 +214,6 @@ def procesar_csv_optimizado(file, placeholder_status):
     result['indice_engagement'] = (result['acceso_plataforma'] * 0.25 + frec_norm * 0.25 +
                                    score_part * 0.20 + score_consulta * 0.20 + score_claridad * 0.10).clip(0, 1)
     
-    # Probabilidad deserción
     bajo_engagement = 1 - result['indice_engagement']
     piensa_score = result['piensa_desertar_frecuente'] * 0.8 + result['piensa_desertar_alguna_vez'] * 0.4
     dif_econ = result['dificultad_pago'] * 0.8 + (result['trabaja'] * (result['horas_semanales'] > 30).astype(int) * 0.3)
@@ -169,7 +232,6 @@ def procesar_csv_optimizado(file, placeholder_status):
                                         bins=[-0.1, 0.4, 0.7, 1.0], 
                                         labels=['BAJO', 'MEDIO', 'ALTO']).astype(str)
     
-    # Recomendaciones vectorizadas
     result['recomendacion'] = "Monitoreo estándar."
     mask_alto_int = (result['riesgo_categoria'] == 'ALTO') & (result['piensa_desertar_frecuente'] == 1)
     mask_alto_acad = (result['riesgo_categoria'] == 'ALTO') & (result['indice_riesgo_academico'] > 0.6) & ~mask_alto_int
@@ -184,7 +246,7 @@ def procesar_csv_optimizado(file, placeholder_status):
     result.loc[mask_med_prom, 'recomendacion'] = "Tutorías preventivas."
     
     result['fecha_prediccion'] = datetime.now()
-    result['modelo_version'] = 'GoogleForms_v1.0'
+    result['modelo_version'] = 'CUN_v1.0'
     result['target_desercion'] = ((result['probabilidad_desercion'] > 0.6) | 
                                   (result['piensa_desertar_frecuente'] == 1)).astype(int)
     
@@ -195,93 +257,63 @@ def procesar_csv_optimizado(file, placeholder_status):
 # ============================================================
 
 def render_filtros_avanzados(df):
-    """Renderiza filtros cruzados múltiples"""
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 🔍 Filtros Avanzados")
     
     if len(df) == 0:
         return df
     
-    # Contador de filtros activos
     filtros_activos = []
     
-    # Filtro 1: Programas (múltiple selección)
     programas = sorted(df['programa'].unique().tolist())
-    prog_seleccionados = st.sidebar.multiselect(
-        "📚 Programas", 
-        programas, 
-        default=[],
-        help="Dejar vacío para seleccionar todos"
-    )
+    prog_seleccionados = st.sidebar.multiselect("📚 Programas", programas, default=[], 
+                                                help="Vacío = todos")
     if prog_seleccionados:
         filtros_activos.append(f"Programas: {', '.join(prog_seleccionados)}")
     
-    # Filtro 2: Semestres (múltiple)
     semestres = sorted(df['semestre'].unique().tolist())
-    sem_seleccionados = st.sidebar.multiselect(
-        "📅 Semestres", 
-        semestres, 
-        default=[],
-        help="Dejar vacío para todos los semestres"
-    )
+    sem_seleccionados = st.sidebar.multiselect("📅 Semestres", semestres, default=[])
     if sem_seleccionados:
         filtros_activos.append(f"Semestres: {', '.join(map(str, sem_seleccionados))}")
     
-    # Filtro 3: Riesgo (múltiple)
     riesgos = ['ALTO', 'MEDIO', 'BAJO']
-    riesgo_seleccionado = st.sidebar.multiselect(
-        "⚠️ Nivel de Riesgo", 
-        riesgos, 
-        default=[],
-        help="Dejar vacío para todos los niveles"
-    )
+    riesgo_seleccionado = st.sidebar.multiselect("⚠️ Nivel de Riesgo", riesgos, default=[])
     if riesgo_seleccionado:
         filtros_activos.append(f"Riesgo: {', '.join(riesgo_seleccionado)}")
     
-    # Filtro 4: Jornada
     jornadas = sorted(df['jornada'].unique().tolist())
-    jornada_sel = st.sidebar.multiselect(
-        "🌅 Jornada", 
-        jornadas, 
-        default=[]
-    )
+    jornada_sel = st.sidebar.multiselect("🌅 Jornada", jornadas, default=[])
     if jornada_sel:
         filtros_activos.append(f"Jornada: {', '.join(jornada_sel)}")
     
-    # Filtro 5: Rango de Promedio
     col1, col2 = st.sidebar.columns(2)
     with col1:
-        prom_min = st.number_input("Promedio Mín", min_value=0.0, max_value=5.0, value=0.0, step=0.5)
+        prom_min = st.number_input("Promedio Mín", 0.0, 5.0, 0.0, 0.5)
     with col2:
-        prom_max = st.number_input("Promedio Máx", min_value=0.0, max_value=5.0, value=5.0, step=0.5)
+        prom_max = st.number_input("Promedio Máx", 0.0, 5.0, 5.0, 0.5)
     
     if prom_min > 0 or prom_max < 5:
-        filtros_activos.append(f"Promedio: {prom_min} - {prom_max}")
+        filtros_activos.append(f"Promedio: {prom_min}-{prom_max}")
     
-    # Filtro 6: Checkbox especiales
     col1, col2 = st.sidebar.columns(2)
     with col1:
-        solo_desercion_frecuente = st.checkbox("🚨 Piensa desertar (frecuente)")
+        solo_desercion_frecuente = st.checkbox("🚨 Piensa desertar")
     with col2:
-        solo_sin_acceso = st.checkbox("💻 Sin acceso plataforma")
+        solo_sin_acceso = st.checkbox("💻 Sin acceso")
     
     if solo_desercion_frecuente:
         filtros_activos.append("Solo intención frecuente")
     if solo_sin_acceso:
         filtros_activos.append("Solo sin acceso")
     
-    # APLICAR FILTROS (encadenados con &)
     df_filtrado = df.copy()
     
     if prog_seleccionados:
         df_filtrado = df_filtrado[df_filtrado['programa'].isin(prog_seleccionados)]
-    
     if sem_seleccionados:
         df_filtrado = df_filtrado[df_filtrado['semestre'].isin(sem_seleccionados)]
-    
     if riesgo_seleccionado:
         df_filtrado = df_filtrado[df_filtrado['riesgo_categoria'].isin(riesgo_seleccionado)]
-    
     if jornada_sel:
         df_filtrado = df_filtrado[df_filtrado['jornada'].isin(jornada_sel)]
     
@@ -290,66 +322,50 @@ def render_filtros_avanzados(df):
     
     if solo_desercion_frecuente:
         df_filtrado = df_filtrado[df_filtrado['piensa_desertar_frecuente'] == 1]
-    
     if solo_sin_acceso:
         df_filtrado = df_filtrado[df_filtrado['acceso_plataforma'] == 0]
     
-    # Mostrar resumen de filtros activos
     if filtros_activos:
         st.sidebar.markdown("#### 🎯 Filtros Activos:")
         for filtro in filtros_activos:
             st.sidebar.caption(f"• {filtro}")
-        
-        # Indicador visual de filtrado
         st.sidebar.markdown(f"""
         <div class="filter-box filter-active">
-            <strong>Mostrando {len(df_filtrado)} de {len(df)} estudiantes</strong><br>
-            <span style="font-size: 0.8rem;">({len(df_filtrado)/len(df)*100:.1f}% del total)</span>
+            <strong>{len(df_filtrado)} de {len(df)} estudiantes</strong><br>
+            <span style="font-size: 0.8rem;">({len(df_filtrado)/len(df)*100:.1f}%)</span>
         </div>
         """, unsafe_allow_html=True)
     else:
         st.sidebar.markdown(f"""
         <div class="filter-box">
-            <strong>Sin filtros aplicados</strong><br>
-            <span style="font-size: 0.8rem;">Mostrando todos los estudiantes ({len(df)})</span>
+            <strong>Sin filtros</strong><br>
+            <span style="font-size: 0.8rem;">{len(df)} estudiantes</span>
         </div>
         """, unsafe_allow_html=True)
     
-    # Botón limpiar filtros
-    if filtros_activos:
-        if st.sidebar.button("🧹 Limpiar Filtros", use_container_width=True):
-            st.rerun()
+    if filtros_activos and st.sidebar.button("🧹 Limpiar Filtros", use_container_width=True):
+        st.rerun()
     
     return df_filtrado
 
 # ============================================================
-# EXPORTACIÓN EXCEL MULTI-HOJA
+# EXPORTACIÓN EXCEL
 # ============================================================
 
 def generar_excel_completo(df_original, df_filtrado):
-    """
-    Genera archivo Excel con múltiples hojas:
-    1. Resumen Ejecutivo
-    2. Alertas Alto Riesgo
-    3. Detalle Completo
-    4. Análisis por Programa
-    5. Estadísticas por Semestre
-    """
     output = BytesIO()
     
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        # HOJA 1: RESUMEN EJECUTIVO
+        # 1. Resumen
         resumen_data = {
             'Métrica': [
-                'Total Estudiantes Analizados',
-                'Riesgo Alto',
-                'Riesgo Medio', 
-                'Riesgo Bajo',
-                'Promedio de Riesgo Institucional',
-                'Estudiantes sin Acceso a Plataforma',
-                'Estudiantes con Intención Frecuente de Desertar',
-                'Promedio Académico General',
-                'Fecha de Análisis'
+                'Total Estudiantes',
+                'Riesgo Alto', 'Riesgo Medio', 'Riesgo Bajo',
+                'Promedio Riesgo Institucional',
+                'Sin Acceso Plataforma',
+                'Intención Frecuente Desertar',
+                'Promedio Académico',
+                'Fecha Análisis'
             ],
             'Valor': [
                 len(df_original),
@@ -363,71 +379,49 @@ def generar_excel_completo(df_original, df_filtrado):
                 datetime.now().strftime("%Y-%m-%d %H:%M")
             ]
         }
-        df_resumen = pd.DataFrame(resumen_data)
-        df_resumen.to_excel(writer, sheet_name='1. Resumen Ejecutivo', index=False)
+        pd.DataFrame(resumen_data).to_excel(writer, sheet_name='1. Resumen', index=False)
         
-        # HOJA 2: ALERTAS ALTO RIESGO (solo los de riesgo alto)
+        # 2. Alertas
         df_alertas = df_original[df_original['riesgo_categoria'] == 'ALTO'].sort_values(
             'probabilidad_desercion', ascending=False
         )
         if len(df_alertas) > 0:
-            cols_alertas = ['id', 'programa', 'semestre', 'jornada', 'promedio_ultimo', 
-                           'probabilidad_desercion', 'indice_riesgo_academico', 'indice_engagement',
-                           'piensa_desertar_frecuente', 'recomendacion']
-            df_alertas[cols_alertas].to_excel(writer, sheet_name='2. Alertas Alto Riesgo', index=False)
+            cols = ['id', 'programa', 'semestre', 'jornada', 'promedio_ultimo', 
+                   'probabilidad_desercion', 'indice_riesgo_academico', 'indice_engagement',
+                   'piensa_desertar_frecuente', 'recomendacion']
+            df_alertas[cols].to_excel(writer, sheet_name='2. Alertas Alto Riesgo', index=False)
         else:
-            pd.DataFrame({'Mensaje': ['No hay estudiantes con riesgo ALTO']}).to_excel(
+            pd.DataFrame({'Mensaje': ['No hay alertas']}).to_excel(
                 writer, sheet_name='2. Alertas Alto Riesgo', index=False
             )
         
-        # HOJA 3: DETALLE COMPLETO (todos los datos)
+        # 3. Detalle
         df_original.to_excel(writer, sheet_name='3. Detalle Completo', index=False)
         
-        # HOJA 4: ANÁLISIS POR PROGRAMA
+        # 4. Por Programa
         analisis_prog = df_original.groupby('programa').agg({
             'id': 'count',
-            'probabilidad_desercion': ['mean', 'std', 'min', 'max'],
+            'probabilidad_desercion': ['mean', 'std'],
             'riesgo_categoria': lambda x: (x == 'ALTO').sum(),
             'promedio_ultimo': 'mean',
-            'indice_engagement': 'mean',
-            'acceso_plataforma': lambda x: (x == 0).sum()
+            'indice_engagement': 'mean'
         }).round(3)
+        analisis_prog.columns = ['Total', 'Riesgo_Prom', 'Riesgo_Std', 'Alertas', 'Promedio', 'Engagement']
+        analisis_prog.reset_index().sort_values('Riesgo_Prom', ascending=False).to_excel(
+            writer, sheet_name='4. Por Programa', index=False
+        )
         
-        analisis_prog.columns = ['Total_Estudiantes', 'Riesgo_Promedio', 'Riesgo_Std', 
-                                'Riesgo_Min', 'Riesgo_Max', 'Cantidad_Alto_Riesgo',
-                                'Promedio_Académico', 'Engagement_Promedio', 'Sin_Acceso_Plataforma']
-        analisis_prog = analisis_prog.reset_index().sort_values('Riesgo_Promedio', ascending=False)
-        analisis_prog.to_excel(writer, sheet_name='4. Análisis por Programa', index=False)
-        
-        # HOJA 5: ANÁLISIS POR SEMESTRE
+        # 5. Por Semestre
         analisis_sem = df_original.groupby('semestre').agg({
             'id': 'count',
             'probabilidad_desercion': 'mean',
-            'riesgo_categoria': lambda x: (x == 'ALTO').sum(),
-            'promedio_ultimo': 'mean',
-            'piensa_desertar_frecuente': 'sum'
+            'riesgo_categoria': lambda x: (x == 'ALTO').sum()
         }).round(3)
-        analisis_sem.columns = ['Total', 'Riesgo_Promedio', 'Alertas_Alto', 'Promedio_Acad', 'Intención_Deserción']
-        analisis_sem = analisis_sem.reset_index()
-        analisis_sem.to_excel(writer, sheet_name='5. Análisis por Semestre', index=False)
+        analisis_sem.columns = ['Total', 'Riesgo_Prom', 'Alertas']
+        analisis_sem.reset_index().to_excel(writer, sheet_name='5. Por Semestre', index=False)
         
-        # HOJA 6: FILTROS APLICADOS (si hay filtrado)
+        # 6. Filtrados si aplica
         if len(df_filtrado) != len(df_original):
-            filtros_info = {
-                'Información': [
-                    'Total original',
-                    'Total filtrado', 
-                    'Porcentaje filtrado',
-                    'Filtros aplicados'
-                ],
-                'Valor': [
-                    len(df_original),
-                    len(df_filtrado),
-                    f"{len(df_filtrado)/len(df_original)*100:.1f}%",
-                    'Ver configuración en dashboard'
-                ]
-            }
-            pd.DataFrame(filtros_info).to_excel(writer, sheet_name='6. Filtros Aplicados', index=False)
             df_filtrado.to_excel(writer, sheet_name='6. Datos Filtrados', index=False)
     
     output.seek(0)
@@ -440,17 +434,18 @@ def generar_excel_completo(df_original, df_filtrado):
 def render_kpis(df, df_filtrado):
     col1, col2, col3, col4 = st.columns(4)
     metricas = [
-        (len(df_filtrado), "Estudiantes (Filtrados)" if len(df_filtrado) != len(df) else "Total Estudiantes", "blue"),
-        ((df_filtrado['riesgo_categoria'] == 'ALTO').sum(), "🚨 Riesgo Alto", "red"),
-        ((df_filtrado['riesgo_categoria'] == 'MEDIO').sum(), "⚠️ Riesgo Medio", "orange"),
-        ((df_filtrado['riesgo_categoria'] == 'BAJO').sum(), "✅ Riesgo Bajo", "green")
+        (len(df_filtrado), "Estudiantes (Filtrados)" if len(df_filtrado) != len(df) else "Total", "blue"),
+        ((df_filtrado['riesgo_categoria'] == 'ALTO').sum(), "🚨 Alto Riesgo", "red"),
+        ((df_filtrado['riesgo_categoria'] == 'MEDIO').sum(), "⚠️ Medio", "orange"),
+        ((df_filtrado['riesgo_categoria'] == 'BAJO').sum(), "✅ Bajo", "green")
     ]
     
     for col, (valor, label, color) in zip([col1, col2, col3, col4], metricas):
         with col:
+            color_hex = '#3b82f6' if color=='blue' else '#ef4444' if color=='red' else '#f59e0b' if color=='orange' else '#10b981'
             st.markdown(f"""
             <div class="metric-container border-{color}">
-                <div style="font-size: 2rem; font-weight: 700; color: {'#3b82f6' if color=='blue' else '#ef4444' if color=='red' else '#f59e0b' if color=='orange' else '#10b981'}">{valor}</div>
+                <div style="font-size: 2rem; font-weight: 700; color: {color_hex}">{valor}</div>
                 <div style="font-size: 0.9rem; color: #666;">{label}</div>
             </div>
             """, unsafe_allow_html=True)
@@ -458,24 +453,22 @@ def render_kpis(df, df_filtrado):
 def render_dashboard(df, df_filtrado):
     render_kpis(df, df_filtrado)
     
-    # Botón de exportación prominente
     col1, col2 = st.columns([3, 1])
     with col2:
         excel_file = generar_excel_completo(df, df_filtrado)
         st.download_button(
-            label="📊 Descargar Excel Completo",
+            label="📊 Descargar Excel",
             data=excel_file,
-            file_name=f"Analisis_Desercion_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
+            file_name=f"Analisis_CUN_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True
         )
-        st.caption("Incluye: Resumen, Alertas, Detalle, Análisis por Programa y Semestre")
     
     with col1:
         if len(df_filtrado) != len(df):
-            st.info(f"🔍 **Vista filtrada:** Mostrando {len(df_filtrado)} de {len(df)} estudiantes ({len(df_filtrado)/len(df)*100:.1f}%)")
+            st.info(f"🔍 Vista filtrada: {len(df_filtrado)} de {len(df)} ({len(df_filtrado)/len(df)*100:.1f}%)")
     
-    tab1, tab2, tab3 = st.tabs(["📊 Distribución", "🚨 Alertas Filtradas", "📚 Por Programa"])
+    tab1, tab2, tab3 = st.tabs(["📊 Distribución", "🚨 Alertas", "📚 Por Programa"])
     
     with tab1:
         col1, col2 = st.columns(2)
@@ -484,7 +477,7 @@ def render_dashboard(df, df_filtrado):
             colors = {'ALTO': '#ef4444', 'MEDIO': '#f59e0b', 'BAJO': '#10b981'}
             fig = px.pie(values=riesgo_counts.values, names=riesgo_counts.index, 
                         color=riesgo_counts.index, color_discrete_map=colors,
-                        title=f"Distribución de Riesgo (n={len(df_filtrado)})")
+                        title=f"Distribución (n={len(df_filtrado)})")
             st.plotly_chart(fig, use_container_width=True)
         
         with col2:
@@ -503,12 +496,12 @@ def render_dashboard(df, df_filtrado):
     with tab2:
         alertas = df_filtrado[df_filtrado['riesgo_categoria'] == 'ALTO']
         if len(alertas) > 0:
-            st.error(f"🚨 {len(alertas)} estudiantes en riesgo ALTO (en filtrado actual)")
+            st.error(f"🚨 {len(alertas)} estudiantes en riesgo ALTO")
             st.dataframe(alertas[['id', 'programa', 'semestre', 'promedio_ultimo', 
                                 'probabilidad_desercion', 'recomendacion']].sort_values('probabilidad_desercion', ascending=False),
                         use_container_width=True)
         else:
-            st.success("No hay alertas de alto riesgo en el filtro actual")
+            st.success("No hay alertas de alto riesgo")
     
     with tab3:
         prog = df_filtrado.groupby('programa').agg({
@@ -524,11 +517,15 @@ def render_dashboard(df, df_filtrado):
 # ============================================================
 
 def main():
-    st.markdown('<div class="main-title">🎓 Análisis de Deserción Estudiantil - CUN</div>', unsafe_allow_html=True)
+    # Header con logo
+    render_header_with_logo()
     
-    # Sidebar - Carga
+    # Sidebar con logo pequeño
+    render_sidebar_logo()
+    
+    # Resto del sidebar
     st.sidebar.markdown("## 📁 Carga de Datos")
-    uploaded_file = st.sidebar.file_uploader("Seleccionar CSV", type=['csv'])
+    uploaded_file = st.sidebar.file_uploader("Seleccionar CSV de Google Forms", type=['csv'])
     
     df = st.session_state.get('datos_procesados', pd.DataFrame())
     
@@ -541,14 +538,34 @@ def main():
             st.rerun()
     
     if len(df) == 0:
-        st.info("👈 Carga un archivo CSV en el panel lateral para comenzar")
+        st.info("👈 Carga un archivo CSV para comenzar el análisis")
+        st.markdown("""
+        ### 📝 Instrucciones:
+        1. Descarga el CSV desde Google Forms (Respuestas → Descargar)
+        2. Súbelo usando el panel lateral
+        3. Aplica filtros avanzados según necesites
+        4. Exporta los resultados a Excel
+        
+        **Desarrollado para:** Especialización en Ingeniería de Sistemas - CUN  
+        **Docente:** Lida Alejandra Barbosa Amado
+        """)
         return
     
-    # Filtros avanzados
+    # Filtros y dashboard
     df_filtrado = render_filtros_avanzados(df)
-    
-    # Dashboard
     render_dashboard(df, df_filtrado)
+    
+    # Footer
+    st.markdown("---")
+    st.markdown("""
+    <div style="text-align: center; color: #2e7d52; padding: 1rem; font-size: 0.9rem;">
+        <strong>Corporación Unificada Nacional de Educación Superior</strong><br>
+        <strong>TRABAJO DE GRADO 3 - MODELOS DE INNOVACION INGENIERIA DE SISTEMAS/51160/BLOQUE UNICO/26P01</strong><br>
+        </strong>Victor Raul Gutierrez Sanabria<br>
+         </strong>Ivonne Niño Valderrama<br>        
+        Ingeniería de Sistemas - 2026
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
