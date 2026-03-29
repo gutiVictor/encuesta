@@ -1,0 +1,48 @@
+﻿Marca temporal,id,programa,semestre,Jornada,promedio_acumulado,promedio_ultimo,materias_perdidas,dificultad_percibida,pct_creditos_aprobados,¿Cuántos créditos ha intentado en total (aprobados + perdidos)?,acceso_plataforma_mes,frecuencia_semanal,participacion_sincronica,consulta_profesores,"
+estrato ",horas_semanales,dependientes,dificultad_pago,piensa_desertar,satisfaccion_programa,probabilidad_continuar_percibida,trabaja,"
+claridad_proposito ","
+evento_estresante "
+3/29/2026 16:48:31,EST_HIST_000,Ingenieria_Sistemas,3,Nocturna,3.15,2.45,2,Mucha,10,10,si,0,Nunca,Nunca,2,30,1,Graves,Si_frecuentemente,3,10,si,Poco_claro,Desempleo_familiar
+,EST_HIST_001,Administracion,4,Virtual,2.89,2.12,3,Mucha,10,10,no,0,Nunca,Nunca,1,40,2,Graves,Si_frecuentemente,2,8,no,Nada_claro,Desempleo_personal
+,EST_HIST_002,Contaduria,2,Diurna,3.67,3.45,0,Poca,10,10,si,5,Siempre,Regularmente,3,0,0,Ninguna,No,8,5,si,Muy_claro,Ninguno
+,EST_HIST_003,Derecho,5,Nocturna,3.22,2.78,1,Algo,10,10,no,2,A_veces,1-2_veces,2,20,1,Algunas,Si_alguna_vez,6,5,no,Algo_claro,Problemas_salud
+,EST_HIST_004,Psicologia,6,Virtual,2.56,2.1,2,Mucha,12,12,si,0,Nunca,Nunca,1,35,3,Graves,Si_frecuentemente,4,5,si,Poco_claro,Otro
+,EST_HIST_005,Medicina,1,Diurna,4.12,3.89,0,Poca,31,31,si,7,Siempre,Regularmente,4,0,0,Ninguna,No,9,4,si,Muy_claro,Ninguno
+,EST_HIST_006,Enfermeria,4,Nocturna,3.45,3.2,1,Algo,44,44,si,4,A_veces,1-2_veces,3,15,1,Algunas,No,7,7,si,Algo_claro,Ninguno
+,EST_HIST_007,Ingenieria_Industrial,3,Virtual,2.78,2.34,2,Mucha,44,44,si,1,Nunca,Nunca,2,25,2,Graves,Si_frecuentemente,3,8,si,Poco_claro,Desempleo_personal
+,EST_HIST_008,Administracion,2,Diurna,3.89,3.67,0,Poca,2,2,si,6,Siempre,Regularmente,3,0,0,Ninguna,No,8,8,si,Muy_claro,Ninguno
+,EST_HIST_009,Contaduria,5,Nocturna,2.95,2.56,2,Algo,21,21,si,3,A_veces,Nunca,2,30,1,Graves,Si_alguna_vez,5,9,si,Algo_claro,Desempleo_familiar
+,EST_HIST_010,Derecho,7,Diurna,3.78,3.9,0,Poca,7,7,si,8,Siempre,Regularmente,4,0,0,Ninguna,No,9,9,si,Muy_claro,Ninguno
+,EST_HIST_011,Psicologia,2,Virtual,2.34,1.89,3,Mucha,25,25,si,0,Nunca,Nunca,1,40,2,Graves,Si_frecuentemente,2,4,si,Nada_claro,Problemas_salud
+,EST_HIST_012,Ingenieria_Sistemas,4,Nocturna,3.12,2.67,1,Algo,23,23,si,3,A_veces,1-2_veces,2,20,0,Algunas,Si_alguna_vez,6,7,si,Algo_claro,Otro
+,EST_HIST_013,Medicina,3,Diurna,3.56,3.34,1,Poca,44,44,si,5,Siempre,Regularmente,3,0,0,Ninguna,No,7,8,si,Muy_claro,Ninguno
+,EST_HIST_014,Enfermeria,5,Virtual,2.67,2.23,2,Mucha,11,11,si,0,Nunca,Nunca,1,35,1,Graves,Si_frecuentemente,3,7,si,Poco_claro,Desempleo_personal
+,EST_HIST_015,Ingenieria_Industrial,2,Diurna,3.9,3.78,0,Poca,10,10,no,6,Siempre,Regularmente,3,10,0,Ninguna,No,8,9,no,Muy_claro,Ninguno
+,EST_HIST_016,Administracion,6,Nocturna,3.23,2.89,1,Algo,10,10,si,4,A_veces,1-2_veces,2,25,2,Algunas,No,6,6,si,Algo_claro,Ninguno
+,EST_HIST_017,Contaduria,3,Virtual,2.45,2.01,3,Mucha,10,10,si,0,Nunca,Nunca,1,40,3,Graves,Si_frecuentemente,2,5,si,Nada_claro,Desempleo_familiar
+,EST_HIST_018,Derecho,1,Diurna,4.05,3.82,0,Poca,10,10,si,7,Siempre,Regularmente,4,0,0,Ninguna,No,9,3,si,Muy_claro,Ninguno
+,EST_HIST_019,Psicologia,4,Nocturna,2.89,2.45,2,Algo,12,12,si,1,A_veces,Nunca,2,30,1,Graves,Si_alguna_vez,5,5,si,Poco_claro,Problemas_salud
+,EST_HIST_020,Medicina,2,Diurna,3.67,3.56,0,Poca,31,31,si,6,Siempre,Regularmente,3,0,0,Ninguna,No,8,9,si,Muy_claro,Ninguno
+,EST_HIST_021,Enfermeria,5,Virtual,2.78,2.34,2,Mucha,44,44,si,0,Nunca,Nunca,2,35,2,Graves,Si_frecuentemente,4,8,si,Poco_claro,Otro
+,EST_HIST_022,Ingenieria_Sistemas,3,Diurna,3.34,3.12,1,Algo,44,44,si,5,Siempre,Regularmente,3,15,0,Algunas,No,7,8,si,Algo_claro,Ninguno
+,EST_HIST_023,Ingenieria_Industrial,4,Nocturna,2.56,2.1,3,Mucha,2,2,si,0,Nunca,Nunca,1,40,1,Graves,Si_frecuentemente,3,9,si,Nada_claro,Desempleo_personal
+,EST_HIST_024,Administracion,2,Virtual,3.78,3.45,0,Poca,21,21,si,6,A_veces,1-2_veces,3,0,0,Ninguna,No,8,8,si,Muy_claro,Ninguno
+,EST_HIST_025,Contaduria,6,Diurna,3.45,3.67,0,Poca,10,10,si,8,Siempre,Regularmente,4,0,0,Ninguna,No,9,7,si,Muy_claro,Ninguno
+,EST_HIST_026,Derecho,2,Nocturna,2.9,2.56,1,Algo,10,10,no,3,A_veces,Nunca,2,25,1,Algunas,Si_alguna_vez,6,7,no,Algo_claro,Desempleo_familiar
+,EST_HIST_027,Psicologia,3,Virtual,2.23,1.78,3,Mucha,10,10,si,0,Nunca,Nunca,1,40,2,Graves,Si_frecuentemente,2,7,si,Nada_claro,Problemas_salud
+,EST_HIST_028,Medicina,4,Diurna,3.89,3.78,0,Poca,12,12,si,7,Siempre,Regularmente,3,0,0,Ninguna,No,8,8,si,Muy_claro,Ninguno
+,EST_HIST_029,Enfermeria,1,Nocturna,3.12,2.89,1,Algo,31,31,si,4,A_veces,1-2_veces,2,20,0,Algunas,No,6,8,si,Algo_claro,Ninguno
+,EST_HIST_030,Ingenieria_Sistemas,5,Virtual,2.67,2.23,2,Mucha,44,44,si,0,Nunca,Nunca,1,35,1,Graves,Si_frecuentemente,3,9,si,Poco_claro,Desempleo_personal
+,EST_HIST_031,Ingenieria_Industrial,2,Diurna,3.56,3.34,0,Poca,44,44,si,5,Siempre,Regularmente,3,10,0,Ninguna,No,7,9,si,Muy_claro,Ninguno
+,EST_HIST_032,Administracion,4,Nocturna,2.78,2.45,2,Algo,2,2,si,3,A_veces,Nunca,2,30,2,Algunas,Si_alguna_vez,5,9,si,Poco_claro,Otro
+,EST_HIST_033,Contaduria,3,Diurna,3.23,3.01,1,Poca,21,21,si,6,Siempre,Regularmente,3,0,0,Ninguna,No,7,9,si,Muy_claro,Ninguno
+,EST_HIST_034,Derecho,6,Virtual,2.34,1.9,3,Mucha,10,10,si,0,Nunca,Nunca,1,40,3,Graves,Si_frecuentemente,2,9,si,Nada_claro,Desempleo_familiar
+,EST_HIST_035,Psicologia,2,Diurna,3.67,3.89,0,Poca,10,10,si,8,Siempre,Regularmente,4,0,0,Ninguna,No,9,9,si,Muy_claro,Ninguno
+,EST_HIST_036,Medicina,5,Nocturna,3.45,3.12,1,Algo,10,10,si,4,A_veces,1-2_veces,3,15,1,Algunas,No,7,9,si,Algo_claro,Ninguno
+,EST_HIST_037,Enfermeria,3,Virtual,2.56,2.12,2,Mucha,12,12,no,1,Nunca,Nunca,2,35,2,Graves,Si_frecuentemente,4,9,no,Poco_claro,Problemas_salud
+,EST_HIST_038,Ingenieria_Sistemas,4,Diurna,3.78,3.56,0,Poca,31,31,si,6,Siempre,Regularmente,3,0,0,Ninguna,No,8,7,si,Muy_claro,Ninguno
+,EST_HIST_039,Ingenieria_Industrial,1,Nocturna,3.01,2.78,1,Algo,44,44,si,4,A_veces,1-2_veces,2,20,0,Algunas,No,6,7,si,Algo_claro,Ninguno
+,EST_HIST_040,Administracion,5,Virtual,2.45,2.01,3,Mucha,44,44,si,0,Nunca,Nunca,1,40,1,Graves,Si_frecuentemente,3,7,si,Nada_claro,Desempleo_personal
+,EST_HIST_041,Contaduria,2,Diurna,3.89,3.67,0,Poca,2,2,si,7,Siempre,Regularmente,4,0,0,Ninguna,No,8,7,si,Muy_claro,Ninguno
+,EST_HIST_042,Derecho,4,Nocturna,2.89,2.56,2,Algo,21,21,si,3,A_veces,Nunca,2,25,1,Algunas,Si_alguna_vez,5,7,si,Poco_claro,Desempleo_familiar
+,EST_HIST_043,Psicologia,3,Diurna,3.34,3.12,1,Poca,10,10,si,5,Siempre,Regularmente,3,0,0,Ninguna,No,7,7,si,Muy_claro,Ninguno
