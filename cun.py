@@ -450,10 +450,80 @@ def render_kpis(df, df_filtrado):
             </div>
             """, unsafe_allow_html=True)
 
+# ============================================================
+# PDF
+# ============================================================
+
+def generar_pdf_ejecutivo(df):
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    elementos = []
+    styles = getSampleStyleSheet()
+
+    # Título
+    titulo = ParagraphStyle('CustomTitle', parent=styles['Heading1'], fontSize=18,
+                            textColor=colors.HexColor('#1e3a8a'), alignment=1)
+    elementos.append(Paragraph("REPORTE EJECUTIVO - CUN", titulo))
+    elementos.append(Spacer(1, 0.2*inch))
+    elementos.append(Paragraph(f"Fecha: {datetime.now().strftime('%d/%m/%Y %H:%M')}", styles['Normal']))
+    elementos.append(Spacer(1, 0.3*inch))
+
+    # Tabla resumen
+    riesgo_alto = (df['riesgo_categoria'] == 'ALTO').sum()
+    riesgo_medio = (df['riesgo_categoria'] == 'MEDIO').sum()
+    riesgo_bajo = (df['riesgo_categoria'] == 'BAJO').sum()
+
+    data = [
+        ['Indicador', 'Valor'],
+        ['Total Estudiantes', str(len(df))],
+        ['Riesgo ALTO', str(riesgo_alto)],
+        ['Riesgo MEDIO', str(riesgo_medio)],
+        ['Riesgo BAJO', str(riesgo_bajo)],
+        ['Promedio Riesgo', f"{df['probabilidad_desercion'].mean():.1%}"]
+    ]
+
+    tabla = Table(data, colWidths=[3*inch, 2*inch])
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e3a8a')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey])
+    ]))
+    elementos.append(tabla)
+    elementos.append(Spacer(1, 0.3*inch))
+
+    # Alertas
+    alertas = df[df['riesgo_categoria'] == 'ALTO'].head(5)
+    if len(alertas) > 0:
+        elementos.append(Paragraph("TOP 5 ALERTAS:", styles['Heading2']))
+        for _, row in alertas.iterrows():
+            elementos.append(Paragraph(
+                f"• {row['id']} ({row['programa']}) - Riesgo: {row['probabilidad_desercion']:.1%}",
+                styles['Normal']
+            ))
+
+    doc.build(elementos)
+    buffer.seek(0)
+    return buffer
+
+
+# ============================================================
+# VISUALIZACIONES - DASHBOARD
+# ============================================================
+
 def render_dashboard(df, df_filtrado):
     render_kpis(df, df_filtrado)
-    
-    col1, col2 = st.columns([3, 1])
+
+    col1, col2, col3 = st.columns([3, 1, 1])
     with col2:
         excel_file = generar_excel_completo(df, df_filtrado)
         st.download_button(
@@ -463,54 +533,65 @@ def render_dashboard(df, df_filtrado):
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True
         )
-    
+    with col3:
+        pdf_file = generar_pdf_ejecutivo(df)
+        st.download_button(
+            label="📄 PDF",
+            data=pdf_file,
+            file_name=f"Reporte_CUN_{datetime.now().strftime('%Y%m%d')}.pdf",
+            mime="application/pdf",
+            use_container_width=True
+        )
     with col1:
         if len(df_filtrado) != len(df):
             st.info(f"🔍 Vista filtrada: {len(df_filtrado)} de {len(df)} ({len(df_filtrado)/len(df)*100:.1f}%)")
-    
+
     tab1, tab2, tab3 = st.tabs(["📊 Distribución", "🚨 Alertas", "📚 Por Programa"])
-    
+
     with tab1:
         col1, col2 = st.columns(2)
         with col1:
             riesgo_counts = df_filtrado['riesgo_categoria'].value_counts()
-            colors = {'ALTO': '#ef4444', 'MEDIO': '#f59e0b', 'BAJO': '#10b981'}
-            fig = px.pie(values=riesgo_counts.values, names=riesgo_counts.index, 
-                        color=riesgo_counts.index, color_discrete_map=colors,
-                        title=f"Distribución (n={len(df_filtrado)})")
+            colors_map = {'ALTO': '#ef4444', 'MEDIO': '#f59e0b', 'BAJO': '#10b981'}
+            fig = px.pie(values=riesgo_counts.values, names=riesgo_counts.index,
+                         color=riesgo_counts.index, color_discrete_map=colors_map,
+                         title=f"Distribución (n={len(df_filtrado)})")
             st.plotly_chart(fig, use_container_width=True)
-        
+
         with col2:
             fig = px.histogram(df_filtrado, x='probabilidad_desercion', nbins=20,
-                             color='riesgo_categoria', color_discrete_map=colors,
-                             title="Histograma de Probabilidades")
+                               color='riesgo_categoria', color_discrete_map=colors_map,
+                               title="Histograma de Probabilidades")
             fig.add_vline(x=0.7, line_dash="dash", line_color="red")
             fig.add_vline(x=0.4, line_dash="dash", line_color="orange")
             st.plotly_chart(fig, use_container_width=True)
-        
-        st.dataframe(df_filtrado[['id', 'programa', 'semestre', 'promedio_ultimo', 
-                                'probabilidad_desercion', 'riesgo_categoria', 'recomendacion']]
-                    .sort_values('probabilidad_desercion', ascending=False),
-                    use_container_width=True, height=300)
-    
+
+        st.dataframe(df_filtrado[['id', 'programa', 'semestre', 'promedio_ultimo',
+                                   'probabilidad_desercion', 'riesgo_categoria', 'recomendacion']]
+                     .sort_values('probabilidad_desercion', ascending=False),
+                     use_container_width=True, height=300)
+
     with tab2:
         alertas = df_filtrado[df_filtrado['riesgo_categoria'] == 'ALTO']
         if len(alertas) > 0:
             st.error(f"🚨 {len(alertas)} estudiantes en riesgo ALTO")
-            st.dataframe(alertas[['id', 'programa', 'semestre', 'promedio_ultimo', 
-                                'probabilidad_desercion', 'recomendacion']].sort_values('probabilidad_desercion', ascending=False),
-                        use_container_width=True)
+            st.dataframe(alertas[['id', 'programa', 'semestre', 'promedio_ultimo',
+                                   'probabilidad_desercion', 'recomendacion']]
+                         .sort_values('probabilidad_desercion', ascending=False),
+                         use_container_width=True)
         else:
             st.success("No hay alertas de alto riesgo")
-    
+
     with tab3:
         prog = df_filtrado.groupby('programa').agg({
             'id': 'count',
             'probabilidad_desercion': 'mean',
-            'riesgo_categoria': lambda x: (x=='ALTO').sum()
+            'riesgo_categoria': lambda x: (x == 'ALTO').sum()
         }).round(3)
         prog.columns = ['Total', 'Riesgo_Prom', 'Alertas']
         st.dataframe(prog.sort_values('Riesgo_Prom', ascending=False), use_container_width=True)
+        
+        
 
 # ============================================================
 # MAIN
